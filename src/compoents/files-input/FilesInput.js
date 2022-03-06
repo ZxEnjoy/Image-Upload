@@ -1,11 +1,11 @@
 import './index.css'
 import { useRef ,useEffect} from 'react'
-const FilesInput = ()=>{
+const FilesInput = (props)=>{
     const filds = useRef()
-    const handleChange=(file)=>{
-        const files = file.target.files
-        console.log(file.target.files)    
-    }
+    // const handleChange=(file)=>{
+    //     const files = file.target.files
+    //     console.log(file.target.files)    
+    // }
     useEffect(
         ()=>{
             filds.current.webkitdirectory=true
@@ -18,7 +18,7 @@ const FilesInput = ()=>{
                 ref={filds} 
                 className='files-input-files'
                 type='file' 
-                onChange={handleChange}
+                onChange={props.onChange}
                 onDragOver={(e)=>{
                     //console.log(e)
                     if(e.dataTransfer.items[0].type!==''){

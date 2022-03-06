@@ -1,10 +1,12 @@
-import { useState,useRef } from 'react';
+import { useState,useRef,useEffect} from 'react';
 import './index.css'
+import FilesTree from './compoents/files-tree/FilesTree'
 import FilesInput from './compoents/files-input/FilesInput';
 function App() {
   const canvas = useRef()
   const tepa = useRef()
   const [filesrc,setsrc] = useState('')
+  const [files,setfiles] = useState([])
   const downimg = (src)=>{
     const changeName=(uri)=>{
       var link = document.createElement('a');
@@ -47,11 +49,24 @@ function App() {
     }
 
   }
+  useEffect(()=>{
+    console.log(files)
+    //console.log(Caman,'AlloyImage')
+  },[files])
   return (
     <div>
-      <FilesInput></FilesInput>
-      <input type='file' onChange={handleChange} multiple='multiple' ></input>
-      <input type='file' onChange={handleChange} webkitdirectory="" ></input>
+      
+      <FilesInput onChange={(e)=>{
+        const reg = /image/
+        const photos = []
+        const newFiles = new DataTransfer()
+        for(let i of e.target.files){
+          reg.test(i.type)&&photos.push(i)&&newFiles.items.add(i)
+        }
+        e.target.files=newFiles.files
+        setfiles(photos)
+      }}/>
+      <FilesTree fileList={files}></FilesTree>
       <canvas width='1000' height='1000' ref={canvas}></canvas>
       <img src={filesrc}></img>
       <div ref={tepa}></div>
