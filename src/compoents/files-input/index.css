@@ -1,0 +1,13 @@
+.files-input{
+    position: relative;
+}
+.files-input-files{
+    position: relative;
+    display: block;
+}
+.files-input-folder{
+    position: absolute;
+    display: block;
+    top: -100%;
+    z-index: 100;
+}
