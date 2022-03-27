@@ -1,3 +1,4 @@
+import { FileImageOutlined, StarFilled, StarTwoTone } from "@ant-design/icons";
 function fileNameCut(path) {
   let tep = "",
     res = [];
@@ -15,7 +16,7 @@ function fileNameCut(path) {
   return res;
 }
 const creatNode = (filePathArr, dep, treeLayer, prekey, isFolder, src) => {
-  console.log(prekey, "rekkk");
+  //console.log(prekey, "rekkk");
   if (prekey.length !== 0) prekey += "-";
   if (isFolder === true) {
     return {
@@ -28,6 +29,7 @@ const creatNode = (filePathArr, dep, treeLayer, prekey, isFolder, src) => {
       title: filePathArr[dep],
       key: prekey + treeLayer.length,
       src: src,
+      icon: <FileImageOutlined />,
     };
   }
 };
@@ -57,11 +59,44 @@ const createFileTree = (filePath, tree, src) => {
         i === filePathArr.length - 1 ? false : true,
         src
       );
-      prekey += "-" + treeLayer.length;
+      const line = prekey.length === 0 ? "" : "-";
+      prekey += line + treeLayer.length;
       treeLayer.push(newnode);
       treeLayer = newnode.children;
     }
   }
+  // const treeSort = (a, b) => {
+  //   if (a.children || b.children) {
+  //     if (a.children && b.children) {
+  //       a.children.sort(treeSort);
+  //       b.children.sort(treeSort);
+  //       return a.title > b.title ? 1 : -1;
+  //     } else {
+  //       return a.children
+  //         ? a.children.sort(treeSort) && -1
+  //         : b.children.sort(treeSort) && 1;
+  //     }
+  //   } else {
+  //     return a.title > b.title ? 1 : -1;
+  //   }
+  // };
+  // if (tree.length <= 1) {
+  //   tree[0].children.sort(treeSort);
+  // }
+  // tree.sort(treeSort);
 };
-
-export { fileNameCut, createFileTree };
+const downImg = (src, newName) => {
+  const changeName = (uri, newName = "is") => {
+    let link = document.createElement("a");
+    link.setAttribute("download", newName + ".jpg");
+    link.setAttribute("href", uri);
+    link.click();
+  };
+  const downSrc = src.replace(
+    /^data:image\/[^;]/,
+    "data:application/octet-stream"
+  );
+  changeName(downSrc, newName);
+  //window.open(downSrc);
+};
+export { fileNameCut, createFileTree, downImg };

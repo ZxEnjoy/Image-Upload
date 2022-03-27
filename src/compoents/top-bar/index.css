@@ -1,0 +1,22 @@
+.title{
+    font-family: "Raleway","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight: 200;
+    line-height: 50px;
+    font-size: 36px;
+}
+.nav{
+    line-height: 50px;
+    font-size:15px;
+    color: #343431;
+    font-family: "Raleway","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+.nav-active{
+    color: #368ad2;
+    line-height: 50px;
+    font-size:15px;
+}
+.top{
+    display: flex;
+    justify-content: space-evenly;
+    margin-bottom: 20px;
+}

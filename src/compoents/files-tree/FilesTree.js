@@ -4,19 +4,21 @@ const { DirectoryTree } = Tree;
 
 const FilesTree = (props) => {
   const { treeData, updataTree, select } = props;
+  console.log(treeData, "treeData");
   const onSelect = (selectedKeys, info) => {
     if (!info.node.children) {
       select(info.node.src);
     }
-    console.log(info.node.src, "info.node.src");
+    //console.log(info.node.src, "info.node.src");
   };
 
   const onCheck = (checkedKeys, info) => {
-    console.log("onCheck", checkedKeys, info);
+    //console.log("onCheck", checkedKeys, info);
   };
   const handle = (info) => {
+    console.log(info, "info");
     const newTree = insert(props.treeData, info.dragNode.key, info.node.key);
-    console.log(newTree, "newTree");
+    //console.log(newTree, "newTree");
     updataTree(newTree);
     // let dragNode = getBykey(props.treeData, info.dragNode.key);
     // if (!dragNode.children) {
@@ -37,7 +39,7 @@ const FilesTree = (props) => {
       onCheck={onCheck}
       onDrop={handle}
       //onDragEnter={handle}
-      treeData={props.treeData}
+      treeData={treeData}
     />
   );
 };

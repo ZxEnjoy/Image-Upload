@@ -35,7 +35,11 @@ const getBykey = (tree, key) => {
     //console.log(node[Number(keyArr[i])], "tree[i]", i, tree, keyArr);
     node = node[Number(keyArr[i])].children;
   }
-  return node[Number(keyArr[keyArr.length - 1])];
+  //console.log(node, "node", keyArr, "keyArr");
+  return [
+    node[Number(keyArr[keyArr.length - 1])],
+    Number(keyArr[keyArr.length - 1]),
+  ];
 };
 const updataKey = (tree, key) => {
   tree.key = key;
@@ -47,34 +51,57 @@ const updataKey = (tree, key) => {
   return tree;
 };
 const deleteNode = (tree, node) => {
-  console.log("del", tree, node);
   return tree.children.filter((i) => {
     return i.key !== node.key;
   });
 };
 const getFatherNode = (tree, nodeKey) => {
-  console.log(nodeKey.slice(0, nodeKey.lastIndexOf("-")), nodeKey, "node key ");
-  return getBykey(tree, nodeKey.slice(0, nodeKey.lastIndexOf("-")));
+  //console.log(nodeKey.slice(0, nodeKey.lastIndexOf("-")), nodeKey, "node key ");
+  return getBykey(tree, nodeKey.slice(0, nodeKey.lastIndexOf("-")))[0];
+};
+const updataTree = (tree, prekey) => {
+  for (let i = 0; i < tree.length; i++) {
+    tree[i].key = prekey + i;
+    if (tree[i].children) {
+      updataTree(tree[i].children, prekey + i + "-");
+    }
+  }
 };
 const insert = (tree, insertKey, targetKey) => {
+  console.log(insertKey, "ins", targetKey, "tar");
   const newTree = copyTree(tree);
-  const inserP = getBykey(
-    newTree,
-    insertKey.slice(0, insertKey.lastIndexOf("-"))
-  );
-  const inserNode = getBykey(newTree, insertKey);
-  let targetNode = getBykey(newTree, targetKey);
-  if (!targetNode.children) {
-    targetNode = getFatherNode(newTree, targetKey);
+  const [insertNode, insertIndex] = getBykey(newTree, insertKey);
+  const [targetNode, targetIndex] = getBykey(newTree, targetKey);
+  const inserNodefather = getFatherNode(newTree, insertKey);
+  const targetNodefather = getFatherNode(newTree, targetKey);
+  if (targetNode.children) {
+    inserNodefather.children.splice(insertIndex, 1);
+    targetNode.children.push(insertNode);
+  } else if (inserNodefather === targetNodefather) {
+    //same father ,just need change index
+    inserNodefather.children.splice(insertIndex, 1);
+    targetNodefather.children.splice(
+      targetIndex, //+ (insertIndex > targetIndex ? 0 : 1),
+      0,
+      insertNode
+    );
+  } else {
+    //unsame , insert and delete
+    inserNodefather.children.splice(insertIndex, 1);
+    targetNodefather.children.splice(targetIndex, 0, insertNode);
   }
-  console.log(inserNode, targetNode, "in tg", insertKey, targetKey);
-  targetNode.children.push(
-    updataKey(inserNode, targetNode.key + "-" + targetNode.children.length)
-  );
-  console.log(inserP, inserNode, "p is");
-  inserP.children = deleteNode(inserP, inserNode);
-  console.log(deleteNode(inserP, inserNode), "insp");
-  console.log(newTree, "inside");
+  updataTree(newTree, "");
+  // if (!targetNode.children) {
+  //   targetNode = getFatherNode(newTree, targetKey);
+  // }
+  // console.log(inserNode, targetNode, "in tg", insertKey, targetKey);
+  // targetNode.children.push(
+  //   updataKey(inserNode, targetNode.key + "-" + targetNode.children.length)
+  // );
+  // console.log(inserP, inserNode, "p is");
+  // inserP.children = deleteNode(inserP, inserNode);
+  // console.log(deleteNode(inserP, inserNode), "insp");
+  // console.log(newTree, "inside");
   return newTree;
 };
-export { insert ,getBykey};
+export { insert, getBykey };
