@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import {
   fileNameCut,
   createFileTree,
@@ -11,6 +11,7 @@ import {
   HsvToRgb,
   tuenR,
   tuenS,
+  global_brightness_adjustment,
 } from "./PhotoProcessingTool/tool";
 import {
   readFile,
@@ -19,6 +20,10 @@ import {
   brightness_adjustment,
   contrast_adjustment,
   cut_photo,
+  tepshowCanvas,
+  globalBrightness_adjustment,
+  globalBrightnessAndSaturation_adjustment,
+  globalSaturation_adjustment,
 } from "./PhotoProcessingTool/canvas";
 import "./index.css";
 import "antd/dist/antd.css";
@@ -26,52 +31,93 @@ import FilesTree from "./compoents/files-tree/FilesTree";
 import FilesInput from "./compoents/files-input/FilesInput";
 import TopBar from "./compoents/top-bar/TopBar";
 import OperationBar from "./compoents/operation-bar/OperationBar";
-const adjust_rgb = () => {
-  let time = undefined;
-  return (newParam) => {
-    if (time) {
-      clearTimeout(time);
-    }
-    return (time = setTimeout(() => {
-      console.log(newParam, "newParam");
-    }, 2000));
+// const adjust_rgb = () => {
+//   let time = undefined;
+//   return (newParam) => {
+//     if (time) {
+//       clearTimeout(time);
+//     }
+//     return (time = setTimeout(() => {
+//       console.log(newParam, "newParam");
+//     }, 2000));
+//   };
+// };
+// const time = adjust_rgb();
+const checkList = [],
+  param = {
+    type: "auto_global",
+    value: [false, false],
+    active: false,
   };
-};
-const time = adjust_rgb();
 function App() {
   const canvas = useRef();
   const [filesrc, setsrc] = useState();
   const [files, setfiles] = useState([{ title: "root", key: "root" }]);
-  const [imagesrc, setimagesrc] = useState();
-  const [param, setParam] = useState([0, 1, 0]);
-  const autoClick = [
-    () => {
-      const newImageSrc = brightness_adjustment(filesrc);
+  const RenderPhoto = (param) => {
+    const value = param.value;
+    switch (param.type) {
+      case "auto_global":
+        (value[0] && value[1] && photoFn.brightnessAndContrast()) ||
+          (value[0] && photoFn.brightness()) ||
+          (value[1] && photoFn.contrast());
+        break;
+      case "RGB":
+        photoFn.rgb();
+        break;
+      case "auto_equalization":
+        (value[0] && value[1] && photoFn.brightnessAndContrast()) ||
+          (value[0] && photoFn.brightness()) ||
+          (value[1] && photoFn.contrast());
+        break;
+      default:
+        console.log(value, param.type);
+    }
+  };
+  const photoFn = {
+    brightness: () => {
+      //const newImageSrc = brightness_adjustment(filesrc);
+      const newImageSrc = globalBrightness_adjustment(filesrc);
       newImageSrc.then((url) => {
         showCanvas(url, canvas.current);
       });
     },
-    () => {
-      const newImageSrc = contrast_adjustment(filesrc);
+    contrast: () => {
+      //const newImageSrc = contrast_adjustment(filesrc);
+      const newImageSrc = globalSaturation_adjustment(filesrc);
       newImageSrc.then((url) => {
         showCanvas(url, canvas.current);
       });
     },
-  ];
+    cut: (xy) => {
+      const newImageSrc = cut_photo(filesrc, ...xy);
+      newImageSrc.then(({ url, size }) => {
+        tepshowCanvas(url, canvas.current, xy, size);
+        downImg(url, "cut");
+      });
+    },
+    brightnessAndContrast: () => {},
+    rgb: () => {},
+  };
   useEffect(() => {
     initCanvas(canvas.current, 600);
   }, [files]);
   useEffect(() => {
     if (filesrc) {
-      setimagesrc(URL.createObjectURL(filesrc));
-      readFile(filesrc, canvas.current);
+      param.value[0] || param.value[1]
+        ? RenderPhoto(param)
+        : readFile(filesrc, canvas.current);
     }
   }, [filesrc]);
-  const handleChange = (value, index) => {
-    const newParam = param.slice();
-    newParam[index] = value;
-    setParam(newParam);
-    time(newParam);
+  const handleChange = (value, type) => {
+    param.value = value;
+    param.type = type;
+  };
+  const handleChecked = (src, hasChecked) => {
+    param.active = hasChecked;
+    src === filesrc && !hasChecked
+      ? readFile(filesrc, canvas.current)
+      : RenderPhoto(param);
+    //console.log(src, hasChecked, "chek");
   };
   return (
     <div>
@@ -108,12 +154,9 @@ function App() {
             select={(filesrc) => {
               setsrc(filesrc);
             }}
+            handleChecked={handleChecked}
           ></FilesTree>
-          <OperationBar
-            Clicks={autoClick}
-            param={param}
-            handleChange={handleChange}
-          ></OperationBar>
+          <OperationBar handleChange={handleChange}></OperationBar>
         </div>
       </div>
     </div>

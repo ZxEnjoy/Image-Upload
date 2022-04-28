@@ -3,7 +3,7 @@ import { insert, getBykey } from "./tool";
 const { DirectoryTree } = Tree;
 
 const FilesTree = (props) => {
-  const { treeData, updataTree, select } = props;
+  const { treeData, updataTree, select, handleChecked } = props;
   console.log(treeData, "treeData");
   const onSelect = (selectedKeys, info) => {
     if (!info.node.children) {
@@ -13,7 +13,8 @@ const FilesTree = (props) => {
   };
 
   const onCheck = (checkedKeys, info) => {
-    //console.log("onCheck", checkedKeys, info);
+    console.log("onCheck", checkedKeys, info);
+    handleChecked(info.node.src ?? undefined, info.checked);
   };
   const handle = (info) => {
     console.log(info, "info");

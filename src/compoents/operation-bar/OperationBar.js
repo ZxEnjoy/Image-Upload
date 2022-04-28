@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Menu, Button } from "antd";
 import AutoTool from "./operation-tool/auto-tool";
 import SelfTool from "./operation-tool/self-tool";
+import CutTool from "./operation-tool/cut-tool";
 const OperationBar = (props) => {
   const [module, setModule] = useState("auto");
 
@@ -17,15 +18,17 @@ const OperationBar = (props) => {
         >
           <Menu.Item key={"auto"}>Auto</Menu.Item>
           <Menu.Item key={"open"}>Open-loop</Menu.Item>
+          <Menu.Item key={"auto/host"}>auto/host</Menu.Item>
         </Menu>
       </div>
       <div>
         {module === "auto" ? (
-          <AutoTool onClick={props.Clicks} />
+          <AutoTool handleChange={props.handleChange} />
         ) : (
           <SelfTool {...props} />
         )}
       </div>
+      <CutTool onClick={props.handleChange}></CutTool>
     </div>
   );
 };

@@ -1,9 +1,13 @@
 import { Slider } from "antd";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 const SelfTool = (props) => {
   //const [rgb,setRgb] = useState([]);
-  const { param, handleChange } = props;
-  const [r, g, b] = param;
+  const { handleChange } = props;
+  const [rgb, setRgb] = useState([0, 0, 0]);
+  const [r, g, b] = rgb;
+  useEffect(() => {
+    handleChange(rgb, "RGB");
+  }, [rgb]);
   return (
     <div>
       <div>
@@ -12,7 +16,9 @@ const SelfTool = (props) => {
           min={-100}
           value={r}
           onChange={(value) => {
-            handleChange(value, 0);
+            const newRgb = rgb.slice();
+            newRgb[0] = value;
+            setRgb(newRgb);
           }}
         ></Slider>
       </div>
@@ -22,7 +28,9 @@ const SelfTool = (props) => {
           min={-100}
           value={g}
           onChange={(value) => {
-            handleChange(value, 1);
+            const newRgb = rgb.slice();
+            newRgb[1] = value;
+            setRgb(newRgb);
           }}
         ></Slider>
       </div>
@@ -32,7 +40,9 @@ const SelfTool = (props) => {
           min={-100}
           value={b}
           onChange={(value) => {
-            handleChange(value, 2);
+            const newRgb = rgb.slice();
+            newRgb[2] = value;
+            setRgb(newRgb);
           }}
         ></Slider>
       </div>

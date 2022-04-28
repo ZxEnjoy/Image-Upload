@@ -1,4 +1,4 @@
-const equalization = (photo) => {
+const equalization = (photo, size = 256) => {
   const lightArr = new Array(256).fill(0),
     sArr = new Array(256).fill(0);
   const newPhoto = [];
@@ -33,15 +33,6 @@ const brightness_Rgb = (photo, brightness) => {
   return photo;
 };
 
-const brightness_Hsv = (photo, contrast) => {
-  for (let i = 0; i < photo.length; i += 4) {
-    photo[i + 2] += contrast;
-    if (photo[i + 2] > 255) {
-      photo[i + 2] = 255;
-    }
-  }
-  return photo;
-};
 const RgbToHsv = (photo) => {
   const HsvPhoto = [];
   for (let i = 0; i < photo.length; i += 4) {
@@ -152,7 +143,7 @@ const equalizationHsvS = (HsvPhoto) => {
     const trSaturation = Math.round(
       ((sArr[Saturation] - min) / (max - min)) * 255
     );
-    const addSaturation = trSaturation - Saturation;
+    //const addSaturation = trSaturation - Saturation;
     //console.log(trSaturation, "trSaturation",);
     newPhoto[i + 1] = trSaturation;
     if (newPhoto[i + 1] > 255) {
@@ -224,6 +215,148 @@ const adjustment_RGB = (photo, rgb) => {
     ]);
   }
 };
+
+const getSincrement = (HsvPhoto) => {
+  const SaturationArr = new Array(256).fill(0),
+    sArr = new Array(256).fill(0),
+    resArr = new Array(256).fill(0);
+  const newPhoto = HsvPhoto.slice();
+  let min = 0,
+    max;
+  for (let i = 0; i < HsvPhoto.length; i += 3) {
+    const Saturation = Math.round(HsvPhoto[i + 1] * 255);
+    SaturationArr[Saturation]++;
+  }
+  sArr[0] = SaturationArr[0];
+  for (let i = 1; i < SaturationArr.length; i++) {
+    sArr[i] = SaturationArr[i] + sArr[i - 1];
+    min = min < sArr[i] ? min : sArr[i];
+    max = max > sArr[i] ? max : sArr[i];
+  }
+  //console.log(max, min, "max -  min");
+  //console.log(sArr, "sArr", lightArr, "lightArr");
+  for (let i = 0; i < HsvPhoto.length; i += 3) {
+    const Saturation = Math.round(HsvPhoto[i + 1] * 255);
+    const trSaturation = Math.round(
+      ((sArr[Saturation] - min) / (max - min)) * 255
+    );
+    //const addSaturation = trSaturation - Saturation;
+    //console.log(trSaturation, "trSaturation",);
+    newPhoto[i + 1] = trSaturation;
+    if (newPhoto[i + 1] > 255) {
+      // newPhoto[i + 1] = 1;
+      resArr[255]++;
+    } else {
+      //newPhoto[i + 1] /= 255;
+      resArr[newPhoto[i + 1]]++;
+    }
+    //console.log(newPhoto[i + 1]);
+  }
+  console.log(SaturationArr, "Sa");
+  console.log(resArr, "res");
+  const sumIndex = (arr) => {
+    let sum = 0;
+    for (let i = 0; i < arr.length; i++) {
+      sum += i * arr[i];
+    }
+    return sum;
+  };
+  return [
+    sumIndex(resArr) / (HsvPhoto.length / 3),
+    sumIndex(SaturationArr) / (HsvPhoto.length / 3),
+  ];
+  // return [
+  //   resArr.indexOf(Math.max(...resArr)),
+  //   SaturationArr.indexOf(Math.max(...SaturationArr)),
+  // ];
+};
+const getIncrement = (HsvPhoto) => {
+  const index = 2;
+  const lightArr = new Array(256).fill(0),
+    sArr = new Array(256).fill(0),
+    rArr = new Array(256).fill(0);
+  const newPhoto = HsvPhoto.slice();
+  let min = 0,
+    max;
+  for (let i = 0; i < HsvPhoto.length; i += 3) {
+    const light = HsvPhoto[i + index];
+    lightArr[Math.round(light)]++;
+  }
+  sArr[0] = lightArr[0];
+  for (let i = 1; i < lightArr.length; i++) {
+    sArr[i] = lightArr[i] + sArr[i - 1];
+    min = min < sArr[i] ? min : sArr[i];
+    max = max > sArr[i] ? max : sArr[i];
+  }
+  for (let i = 0; i < HsvPhoto.length; i += 3) {
+    const light = HsvPhoto[i + index];
+    const trLight = Math.round(((sArr[light] - min) / (max - min)) * 255);
+    newPhoto[i + index] = trLight;
+    // if (type === "s") {
+    //   if (newPhoto[i + index] > 255) {
+    //     newPhoto[i + index] = 1;
+    //   } else {
+    //     newPhoto[i + index] /= 255;
+    //   }
+    // } else
+    if (newPhoto[i + index] > 255) {
+      newPhoto[i + index] = 255;
+    }
+    rArr[newPhoto[i + index]]++;
+  }
+  //console.log(Math.max(...rArr), Math.max(...lightArr), "max is ");
+  return [
+    rArr.indexOf(Math.max(...rArr)),
+    lightArr.indexOf(Math.max(...lightArr)),
+  ];
+};
+const HsvAdjustment = (Hsvphoto, param, type) => {
+  const index = type === "v" ? 2 : 1;
+  for (let i = 0; i < Hsvphoto.length; i += 3) {
+    Hsvphoto[i + index] += param;
+    if (Hsvphoto[i + index] < 0) {
+      Hsvphoto[i + index] = 0;
+    }
+    if (Hsvphoto[i + index] > 255) {
+      Hsvphoto[i + index] = 255;
+    }
+  }
+  return Hsvphoto;
+};
+const global_brightness_adjustment = (photo) => {
+  const HsvPhoto = RgbToHsv(photo);
+  const [increB, initB] = getIncrement(HsvPhoto, "v");
+  const add = increB - initB > 30 ? 30 : increB - initB;
+  //const add = increB - initB;
+  HsvAdjustment(HsvPhoto, add, "v");
+  console.log(increB, initB, "?");
+  const newRgbPhoto = HsvToRgb(HsvPhoto);
+  return newRgbPhoto;
+};
+const global_saturation_adjustment = (photo) => {
+  const HsvPhoto = RgbToHsv(photo);
+  const [increB, initB] = getSincrement(HsvPhoto);
+  const add = increB - initB > 30 ? 30 : increB - initB;
+  //const add = increB - initB;
+  HsvAdjustment(HsvPhoto, add / 255, "s");
+  console.log(increB, initB, "?");
+  const newRgbPhoto = HsvToRgb(HsvPhoto);
+  return newRgbPhoto;
+};
+
+const global_saturationAndValue_adjustment = (photo) => {
+  const HsvPhoto = RgbToHsv(photo);
+  const [increV, initV] = getIncrement(HsvPhoto, "v");
+  const [increS, initS] = getIncrement(HsvPhoto, "s");
+  const addV = increV - initV > 30 ? 30 : increV - initV,
+    addS = increS - initS > 30 ? 30 : increS - initS;
+  //const add = increB - initB;
+  HsvAdjustment(HsvPhoto, 50 / 255, "s");
+  HsvAdjustment(HsvPhoto, addV, "v");
+  console.log(addV, addS, "both add");
+  const newRgbPhoto = HsvToRgb(HsvPhoto);
+  return newRgbPhoto;
+};
 export {
   equalization,
   RgbToHsv,
@@ -232,4 +365,7 @@ export {
   tuenS,
   equalizationS,
   adjustment_RGB,
+  global_brightness_adjustment,
+  global_saturation_adjustment,
+  global_saturationAndValue_adjustment,
 };
