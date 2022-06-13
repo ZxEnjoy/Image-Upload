@@ -1,0 +1,15 @@
+.down-box{
+    border: 1px dashed #D9D9DA;
+    background-color: #FAFAFA;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+}
+.down-box:hover{
+    border: 1px dashed #1990FF;
+}
+.down-text{
+    margin-bottom: 5px;
+    font: 16px sans-serif;
+    text-align: center;
+}

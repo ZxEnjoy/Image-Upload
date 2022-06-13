@@ -184,7 +184,7 @@ const equalizationS = (photo) => {
     min = min < sArr[i] ? min : sArr[i];
     max = max > sArr[i] ? max : sArr[i];
   }
-  console.log(sArr, "sArr", SaturationArr, "lightArr");
+  //console.log(sArr, "sArr", SaturationArr, "lightArr");
   for (let i = 0; i < photo.length; i += 4) {
     const [r, g, b] = [photo[i], photo[i + 1], photo[i + 2]];
     const Saturation = Math.max(r, g, b) - Math.min(r, g, b);
@@ -192,8 +192,8 @@ const equalizationS = (photo) => {
       ((sArr[Saturation] - min) / (max - min)) * 255
     );
     //const addSaturation = trSaturation - Saturation;
-    i < 200 &&
-      console.log(Saturation, "Saturation", trSaturation, "trSaturation");
+    //i < 200 &&
+    //console.log(Saturation, "Saturation", trSaturation, "trSaturation");
     if (r === Math.max(r, g, b)) {
       photo[i] = trSaturation; //Math.round(r * (trSaturation / Saturation));
     } else if (g === Math.max(r, g, b)) {
@@ -252,8 +252,8 @@ const getSincrement = (HsvPhoto) => {
     }
     //console.log(newPhoto[i + 1]);
   }
-  console.log(SaturationArr, "Sa");
-  console.log(resArr, "res");
+  //console.log(SaturationArr, "Sa");
+  //console.log(resArr, "res");
   const sumIndex = (arr) => {
     let sum = 0;
     for (let i = 0; i < arr.length; i++) {
@@ -328,6 +328,7 @@ const global_brightness_adjustment = (photo) => {
   const [increB, initB] = getIncrement(HsvPhoto, "v");
   const add = increB - initB > 30 ? 30 : increB - initB;
   //const add = increB - initB;
+  //if (add < 5) return HsvToRgb(HsvPhoto);
   HsvAdjustment(HsvPhoto, add, "v");
   console.log(increB, initB, "?");
   const newRgbPhoto = HsvToRgb(HsvPhoto);
@@ -338,6 +339,7 @@ const global_saturation_adjustment = (photo) => {
   const [increB, initB] = getSincrement(HsvPhoto);
   const add = increB - initB > 30 ? 30 : increB - initB;
   //const add = increB - initB;
+  //if (add < 5) return HsvToRgb(HsvPhoto);
   HsvAdjustment(HsvPhoto, add / 255, "s");
   console.log(increB, initB, "?");
   const newRgbPhoto = HsvToRgb(HsvPhoto);
@@ -347,11 +349,11 @@ const global_saturation_adjustment = (photo) => {
 const global_saturationAndValue_adjustment = (photo) => {
   const HsvPhoto = RgbToHsv(photo);
   const [increV, initV] = getIncrement(HsvPhoto, "v");
-  const [increS, initS] = getIncrement(HsvPhoto, "s");
+  const [increS, initS] = getSincrement(HsvPhoto, "s");
   const addV = increV - initV > 30 ? 30 : increV - initV,
     addS = increS - initS > 30 ? 30 : increS - initS;
   //const add = increB - initB;
-  HsvAdjustment(HsvPhoto, 50 / 255, "s");
+  HsvAdjustment(HsvPhoto, addS / 255, "s");
   HsvAdjustment(HsvPhoto, addV, "v");
   console.log(addV, addS, "both add");
   const newRgbPhoto = HsvToRgb(HsvPhoto);

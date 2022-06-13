@@ -7,14 +7,32 @@ const FilesTree = (props) => {
   console.log(treeData, "treeData");
   const onSelect = (selectedKeys, info) => {
     if (!info.node.children) {
-      select(info.node.src);
+      //select(info.node.src);
+      info.node.img.then((node) => {
+        console.log(node, "onselect");
+        select(node);
+      });
     }
     //console.log(info.node.src, "info.node.src");
   };
 
   const onCheck = (checkedKeys, info) => {
-    console.log("onCheck", checkedKeys, info);
-    handleChecked(info.node.src ?? undefined, info.checked);
+    console.log(info, "chekcsss");
+    if (info.node.img) {
+      info.node.img.then((node) => {
+        handleChecked(
+          info.node.src ? node : undefined,
+          info.checked,
+          info.checkedNodes
+        );
+      });
+    } else {
+      handleChecked(
+        info.node.src ?? undefined,
+        info.checked,
+        info.checkedNodes
+      );
+    }
   };
   const handle = (info) => {
     console.log(info, "info");
@@ -39,6 +57,7 @@ const FilesTree = (props) => {
       onSelect={onSelect}
       onCheck={onCheck}
       onDrop={handle}
+      height={300}
       //onDragEnter={handle}
       treeData={treeData}
     />

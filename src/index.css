@@ -18,6 +18,21 @@ code {
 .canvas{
   margin: 0 50px;
 }
+.canvas-box{
+  position: relative;
+
+}
+.canvas-cutline{
+  position: absolute;
+  box-sizing:border-box;
+  width: 600px;
+  height: 600px;
+  left: 50px;
+  top: 0;
+  padding: 10px;
+  border: 1px green solid;
+  background-color: pink;
+}
 .right-tool{
   
 }

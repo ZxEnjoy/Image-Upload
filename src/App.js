@@ -3,16 +3,9 @@ import {
   fileNameCut,
   createFileTree,
   downImg,
+  downList,
+  downByWoker,
 } from "./PhotoProcessingTool/filesTool";
-import {
-  equalization,
-  equalizationS,
-  RgbToHsv,
-  HsvToRgb,
-  tuenR,
-  tuenS,
-  global_brightness_adjustment,
-} from "./PhotoProcessingTool/tool";
 import {
   readFile,
   showCanvas,
@@ -24,6 +17,8 @@ import {
   globalBrightness_adjustment,
   globalBrightnessAndSaturation_adjustment,
   globalSaturation_adjustment,
+  allfun,
+  retinex,
 } from "./PhotoProcessingTool/canvas";
 import "./index.css";
 import "antd/dist/antd.css";
@@ -31,104 +26,145 @@ import FilesTree from "./compoents/files-tree/FilesTree";
 import FilesInput from "./compoents/files-input/FilesInput";
 import TopBar from "./compoents/top-bar/TopBar";
 import OperationBar from "./compoents/operation-bar/OperationBar";
-// const adjust_rgb = () => {
-//   let time = undefined;
-//   return (newParam) => {
-//     if (time) {
-//       clearTimeout(time);
-//     }
-//     return (time = setTimeout(() => {
-//       console.log(newParam, "newParam");
-//     }, 2000));
-//   };
-// };
-// const time = adjust_rgb();
-const checkList = [],
-  param = {
-    type: "auto_global",
-    value: [false, false],
-    active: false,
-  };
+import Down from "./compoents/down/down";
+import CorpBox from "./compoents/cropBox/corpBox";
+let checkList = [];
+const param = {
+  type: "auto_global",
+  value: [false, false],
+  active: false,
+};
+let loading,
+  readCount = 0,
+  sumCount = 0;
+const hasRead = new Promise((re, rj) => {
+  loading = re;
+});
 function App() {
   const canvas = useRef();
   const [filesrc, setsrc] = useState();
+  const [paramCuted, setParamCuted] = useState({
+    hasCuted: false,
+    value: [0, 0, 0, 0],
+  });
+  const [size, setSize] = useState([600, 600, 1]);
   const [files, setfiles] = useState([{ title: "root", key: "root" }]);
+  const [over, setOver] = useState(undefined);
   const RenderPhoto = (param) => {
-    const value = param.value;
-    switch (param.type) {
-      case "auto_global":
-        (value[0] && value[1] && photoFn.brightnessAndContrast()) ||
-          (value[0] && photoFn.brightness()) ||
-          (value[1] && photoFn.contrast());
-        break;
-      case "RGB":
-        photoFn.rgb();
-        break;
-      case "auto_equalization":
-        (value[0] && value[1] && photoFn.brightnessAndContrast()) ||
-          (value[0] && photoFn.brightness()) ||
-          (value[1] && photoFn.contrast());
-        break;
-      default:
-        console.log(value, param.type);
-    }
+    console.log(param.value, "param.value");
+    const newImageSrc = allfun(filesrc, [...param.value, false], [0, 0, 0, 0]);
+    //const newImageSrc = retinex(filesrc);
+    newImageSrc.then((url) => {
+      console.log("render");
+      showCanvas(url, canvas.current);
+    });
   };
-  const photoFn = {
-    brightness: () => {
-      //const newImageSrc = brightness_adjustment(filesrc);
-      const newImageSrc = globalBrightness_adjustment(filesrc);
-      newImageSrc.then((url) => {
-        showCanvas(url, canvas.current);
-      });
-    },
-    contrast: () => {
-      //const newImageSrc = contrast_adjustment(filesrc);
-      const newImageSrc = globalSaturation_adjustment(filesrc);
-      newImageSrc.then((url) => {
-        showCanvas(url, canvas.current);
-      });
-    },
-    cut: (xy) => {
-      const newImageSrc = cut_photo(filesrc, ...xy);
-      newImageSrc.then(({ url, size }) => {
-        tepshowCanvas(url, canvas.current, xy, size);
-        downImg(url, "cut");
-      });
-    },
-    brightnessAndContrast: () => {},
-    rgb: () => {},
-  };
+
   useEffect(() => {
     initCanvas(canvas.current, 600);
   }, [files]);
   useEffect(() => {
+    const RecoHeight = (baseWidth, width, height) => {
+      //console.log(width, height);
+      //console.log(Math.round((baseWidth / width) * height), "newheight");
+      return Math.round((baseWidth / width) * height);
+    };
     if (filesrc) {
+      console.log("imgSize is", filesrc.width, filesrc.height);
       param.value[0] || param.value[1]
         ? RenderPhoto(param)
         : readFile(filesrc, canvas.current);
+      setSize([
+        600,
+        RecoHeight(600, filesrc.width, filesrc.height),
+        600 / filesrc.width,
+      ]);
     }
+    //console.log(filesrc.height, "fucking size");
+
+    //console.log(canvas.current.height);
   }, [filesrc]);
   const handleChange = (value, type) => {
     param.value = value;
     param.type = type;
   };
-  const handleChecked = (src, hasChecked) => {
+
+  const handleChecked = (src, hasChecked, checkedNodes) => {
+    console.log("handleChecked");
     param.active = hasChecked;
     src === filesrc && !hasChecked
       ? readFile(filesrc, canvas.current)
       : RenderPhoto(param);
     //console.log(src, hasChecked, "chek");
+    console.log(checkedNodes, "checkedNodes");
+    const fillterList = [];
+    readCount = 0;
+    sumCount = 0;
+    checkedNodes.forEach((node) => {
+      if (node.src !== undefined) {
+        sumCount++;
+        node.img.then((img) => {
+          //console.log(img, "ffff");
+          readCount++;
+          if (readCount === sumCount) loading(true);
+          fillterList.push({ img: img, title: node.title });
+        });
+      } else {
+        console.log(node);
+      }
+    });
+    checkList = fillterList;
+    console.log(fillterList, "checkList");
   };
+  const handleCut = (target) => {
+    console.log(target, "targer");
+    if (target.length !== 2) {
+      setParamCuted({ hasCuted: false, value: [] });
+    } else {
+      setParamCuted({ hasCuted: true, value: target });
+    }
+  };
+  const handleDown = () => {
+    //console.log("real down");
+    hasRead.then(
+      (flg) => {
+        downByWoker(
+          checkList,
+          [...param.value, paramCuted.hasCuted],
+          paramCuted.value,
+          setOver
+        );
+      },
+      (v) => {
+        console.log("bukn");
+      }
+    );
+
+    // downList(
+    //   checkList,
+    //   [...param.value, paramCuted.hasCuted],
+    //   paramCuted.value
+    // );
+  };
+  // useEffect(() => {
+  //   console.log(size, "size is");
+  // }, [size]);
   return (
     <div>
       <TopBar></TopBar>
       <div className={"main-box"}>
-        <canvas
-          width="600"
-          height="600"
-          ref={canvas}
-          className={"canvas"}
-        ></canvas>
+        <div className={"canvas-box"}>
+          <canvas
+            width="600"
+            height="600"
+            ref={canvas}
+            className={"canvas"}
+          ></canvas>
+          {paramCuted.hasCuted ? (
+            <CorpBox Coordinate={paramCuted.value} size={size} />
+          ) : null}
+        </div>
+
         <div className={"right-tool"}>
           <FilesInput
             onChange={(e) => {
@@ -156,7 +192,16 @@ function App() {
             }}
             handleChecked={handleChecked}
           ></FilesTree>
-          <OperationBar handleChange={handleChange}></OperationBar>
+          <OperationBar
+            handleChange={handleChange}
+            handleCut={handleCut}
+          ></OperationBar>
+          <Down
+            onClick={() => {
+              handleDown();
+            }}
+            //percent={30}
+          ></Down>
         </div>
       </div>
     </div>

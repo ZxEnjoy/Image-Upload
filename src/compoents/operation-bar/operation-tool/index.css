@@ -8,3 +8,6 @@
     display: flex;
     flex-wrap: wrap;
 }
+.tool-cut{
+    max-width: 296px;
+}

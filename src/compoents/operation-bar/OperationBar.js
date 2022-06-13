@@ -28,7 +28,7 @@ const OperationBar = (props) => {
           <SelfTool {...props} />
         )}
       </div>
-      <CutTool onClick={props.handleChange}></CutTool>
+      <CutTool onClick={props.handleCut}></CutTool>
     </div>
   );
 };
